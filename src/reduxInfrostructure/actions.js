@@ -1,0 +1,2 @@
+export const RECEIVE_STREAM = 'RECEIVE_STREAM';
+export const STOP_STREAM = 'STOP_STREAM';

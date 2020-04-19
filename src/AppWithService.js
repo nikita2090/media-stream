@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './App.module.css'
 
+import StreamStoreService from "./streamStoreService";
+const streamStore = new StreamStoreService();
+console.log(streamStore);
 
-const App = () => {
+const AppWithService = () => {
     const [ isStreaming, setIsStreaming ] = useState(false);
-    const [ mediaStream, setMediaStream ] = useState(null);
+    const [ mediaStreamId, setMediaStreamId ] = useState(null);
+
+    const mediaStream = streamStore.getStream(mediaStreamId);
 
     const videoRef = useRef();
     const constraints = {
@@ -18,7 +23,10 @@ const App = () => {
         const startStream = async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                setMediaStream(stream);
+                const streamId = streamStore.saveStream(stream);
+                console.log(streamStore);
+                console.log(streamId);
+                setMediaStreamId(streamId);
             } catch (err) {
                 stopStream();
             }
@@ -62,16 +70,12 @@ const App = () => {
                 autoPlay
             />
             <div>
-                <button onClick={handleStartTranslationClick}>
-                    Start
-                </button>
-                <button onClick={handleStopTranslationClick}>
-                    Stop
-                </button>
+                <button onClick={handleStartTranslationClick}>Start</button>
+                <button onClick={handleStopTranslationClick}>Stop</button>
             </div>
         </div>
     );
 };
 
 
-export default App;
+export default AppWithService;

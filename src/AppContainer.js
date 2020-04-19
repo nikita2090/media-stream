@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { connect } from 'react-redux';
 import styles from './App.module.css'
 
+import { receiveStream } from './reduxInfrostructure/action-creators';
 
-const App = () => {
+
+const App = ({ stream, receiveStreamAction }) => {
     const [ isStreaming, setIsStreaming ] = useState(false);
-    const [ mediaStream, setMediaStream ] = useState(null);
 
     const videoRef = useRef();
     const constraints = {
@@ -17,38 +19,32 @@ const App = () => {
 
         const startStream = async () => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                setMediaStream(stream);
+                const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                receiveStreamAction(mediaStream);
             } catch (err) {
-                stopStream();
+
             }
         };
 
-        const stopStream = () => {
-            mediaStream.getTracks().forEach(track => {
-                track.stop();
-            });
-        };
-
-        if (!mediaStream) {
+        if (!stream) {
             startStream();
         } else {
             return () => {
-                stopStream();
+
             }
         }
-    }, [ mediaStream, isStreaming, constraints ]);
+    }, [ stream, isStreaming, constraints, receiveStreamAction ]);
 
 
     const handleStartTranslationClick = () => {
         setIsStreaming(true);
-        if (mediaStream && videoRef.current && !videoRef.current.srcObject) {
-            videoRef.current.srcObject = mediaStream;
+        if (stream && videoRef.current && !videoRef.current.srcObject) {
+            videoRef.current.srcObject = stream;
         }
     };
 
     const handleStopTranslationClick = () => {
-        mediaStream.getTracks().forEach(track => {
+        stream.getTracks().forEach(track => {
             track.stop();
         });
     };
@@ -62,16 +58,20 @@ const App = () => {
                 autoPlay
             />
             <div>
-                <button onClick={handleStartTranslationClick}>
-                    Start
-                </button>
-                <button onClick={handleStopTranslationClick}>
-                    Stop
-                </button>
+                <button onClick={handleStartTranslationClick}>Start</button>
+                <button onClick={handleStopTranslationClick}>Stop</button>
             </div>
         </div>
     );
 };
 
 
-export default App;
+const mapStateToProps = ({ streamReducer: { stream } }) => ({
+    stream,
+});
+
+const mapDispatchToProps = {
+    receiveStreamAction: receiveStream,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
